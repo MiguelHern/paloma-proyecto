@@ -69,7 +69,7 @@
                         class="relative w-1/4 flex-shrink-0 h-full p-4 rounded-lg group">
                         <img src="public/<?php echo htmlspecialchars($producto['imagen']); ?>"
                              alt="<?php echo htmlspecialchars($producto['descripcion']); ?>"
-                             class="w-full h-full mt-4 rounded-lg">
+                             class="w-full mt-4 rounded-lg" style="height: 200px">
                         <h3 class="text-lg font-bold"><?php echo htmlspecialchars($producto['descripcion']); ?></h3>
                         <p class="text-sm text-gray-400">$<?php echo number_format($producto['precioU'], 2); ?></p>
                         <!-- Hover Text -->

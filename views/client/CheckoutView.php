@@ -596,6 +596,7 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
         sessionStorage.setItem('nombreC', nombreC);
         ordenActiva = true;
         sessionStorage.setItem('ordenActiva', 'true');
+        sessionStorage.setItem('ordenActiva', 'true');
 
         // Construir los datos para enviar
         const formData = new FormData();
