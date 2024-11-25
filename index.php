@@ -5,11 +5,11 @@ $config = require 'config/config.php';
 
 // Obtener la ruta solicitada
 $requestUri = $_SERVER['REQUEST_URI'];
-$baseUri = '/paloma-proyecto'; // Cambiar al nombre de tu carpeta en htdocs
+$baseUri = '/paloma-proyecto'; // Cambia al nombre de tu carpeta en htdocs
 $route = str_replace($baseUri, '', $requestUri);
 $route = trim($route, '/');
 
-// Conexión a la base de datos (opcional)
+// Conexión a la base de datos
 $dbConfig = $config['settings']['db'];
 $dsn = "mysql:host={$dbConfig['host']};port={$dbConfig['port']};dbname={$dbConfig['dbname']}";
 try {
@@ -25,10 +25,8 @@ switch ($route) {
     case 'home':
         require 'src/controllers/client/HomeController.php';
         break;
-    /*
-default:
-    http_response_code(404);
-    require '../views/404.php';
-    break;
-    */
+
+    case 'carrito':
+        require 'src/controllers/client/CheckoutController.php';
+        break;
 }
