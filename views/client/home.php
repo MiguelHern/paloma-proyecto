@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Document</title>
     <link href="public/styles.css" rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
 </head>
 <body>
@@ -28,7 +28,7 @@
                 </a>
             </div>
             <div class="hidden lg:flex ">
-                <a href="#" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+                <a href="public/login.php" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
             </div>
         </nav>
 
@@ -52,8 +52,7 @@
             </div>
         </div>
     </header>
-
-</header>
+    </header>
 <main class="">
     <section class="favorite-movies mt-3">
         <?php foreach ($productosAgrupados as $nombre => $productosCategoria): ?>
@@ -67,13 +66,18 @@
                         data-descripcion="<?php echo htmlspecialchars($producto['descripcion']); ?>"
                         data-precio="<?php echo number_format($producto['precioU'], 2); ?>"
                         data-imagen="<?php echo htmlspecialchars($producto['imagen']); ?>"
-                        class=" w-1/4 flex-shrink-0 h-full p-4 rounded-lg">
+                        class="relative w-1/4 flex-shrink-0 h-full p-4 rounded-lg group">
                         <img src="public/<?php echo htmlspecialchars($producto['imagen']); ?>"
                              alt="<?php echo htmlspecialchars($producto['descripcion']); ?>"
                              class="w-full h-full mt-4 rounded-lg">
                         <h3 class="text-lg font-bold"><?php echo htmlspecialchars($producto['descripcion']); ?></h3>
                         <p class="text-sm text-gray-400">$<?php echo number_format($producto['precioU'], 2); ?></p>
+                        <!-- Hover Text -->
+                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+                            Agregar al carrito
+                        </div>
                     </li>
+
                 <?php endforeach; ?>
 
             </ul>
@@ -83,35 +87,9 @@
         </div>
         <?php endforeach; ?>
     </section>
-    <!--
-    <section>
-        <?php foreach ($productosAgrupados as $nombre => $productosCategoria): ?>
-            <h2><?php echo htmlspecialchars($nombre); ?></h2>
-            <table>
-                <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Precio</th>
-                    <th>Descripción</th>
-                    <th>Imagen</th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($productosCategoria as $producto): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($producto['nombre']); ?></td>
-                        <td>$<?php echo number_format($producto['precioU'], 2); ?></td>
-                        <td><?php echo htmlspecialchars($producto['descripcion']); ?></td>
-                        <td><img src="<?php echo htmlspecialchars($producto['imagen']); ?>" alt="<?php echo htmlspecialchars($producto['descripcion']); ?>"></td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endforeach; ?>
-    </section>
-    -->
 
 </main>
+
 <script>
     let currentIndex = 0;
     const itemsToShow = 4;  // Cuántos elementos mostrar a la vez
@@ -160,9 +138,6 @@
 
             // Guardar el carrito actualizado en sessionStorage
             sessionStorage.setItem('carrito', JSON.stringify(carrito));
-
-            console.log(carrito);
-            console.log('Producto agregado:', productoObjeto);
         });
     });
 

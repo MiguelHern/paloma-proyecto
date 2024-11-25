@@ -1,3 +1,20 @@
+<?php
+// Filtrar los pedidos en dos categorías: Pagados (statusPe = 3) y En Proceso (statusPe = 1 o 2)
+$pedidosPagados = [];
+$pedidosEnProceso = [];
+
+foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
+    foreach ($pedidosStatus as $pedido) {
+        if ($pedido['statusPe'] === 3) {
+            // Pedidos Pagados
+            $pedidosPagados[] = $pedido;
+        } else {
+            // Pedidos En Proceso
+            $pedidosEnProceso[] = $pedido;
+        }
+    }
+}
+?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -27,7 +44,7 @@
             </a>
         </div>
         <div class="hidden lg:flex ">
-            <a href="#" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+            <a href="public/login.php" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
         </div>
     </nav>
 
@@ -51,7 +68,49 @@
 </header>
 
 <main class="flex gap-6">
-    <section class="w-2/3">
+    <section id="pagos" class="orders mt-3 hidden w-2/3">
+        <div class="w-full">
+            <header>
+                <h2 class="ml-4 text-2xl font-semibold">Listos</h2>
+            </header>
+            <div class="relative overflow-hidden">
+                <ul id="pedidos-pagados">
+                    <?php foreach ($pedidosPagados as $pedido): ?>
+                        <li class="p-4 rounded-lg pedido-item" data-nombre="<?php echo htmlspecialchars($pedido['nombreC']); ?>">
+                            <h3 class="text-lg font-bold">Pedido de: <?php echo htmlspecialchars($pedido['nombreC']); ?></h3>
+                            <p>Fecha: <?php echo date("d-m-Y", strtotime($pedido['fecha'])); ?></p>
+                            <p>Hora: <?php echo $pedido['hora']; ?></p>
+                            <p>Total: $<?php echo number_format($pedido['total'], 2); ?></p>
+                            <p>Status de Pago: Pagado</p>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+
+            <!-- Mostrar los pedidos En Proceso -->
+            <header>
+                <h2 class="ml-4 text-2xl font-semibold">En Proceso</h2>
+            </header>
+            <div class="relative overflow-hidden">
+                <ul id="pedidos-en-proceso">
+                    <?php foreach ($pedidosEnProceso as $pedido): ?>
+                        <li class="p-4 rounded-lg pedido-item" data-nombre="<?php echo htmlspecialchars($pedido['nombreC']); ?>">
+                            <h3 class="text-lg font-bold">Pedido de: <?php echo htmlspecialchars($pedido['nombreC']); ?></h3>
+                            <p>Fecha: <?php echo date("d-m-Y", strtotime($pedido['fecha'])); ?></p>
+                            <p>Hora: <?php echo $pedido['hora']; ?></p>
+                            <p>Total: $<?php echo number_format($pedido['total'], 2); ?></p>
+                            <p>Status de Pago:
+                                <?php echo ($pedido['statusPa'] == 1) ? 'Pendiente' : 'En Proceso'; ?>
+                            </p>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        </div>
+
+
+    </section>
+    <section id="carritoIzquierdo" class="w-2/3">
         <div id="carrito-container">
             <ul id="carrito-lista"></ul>
         </div>
@@ -67,27 +126,28 @@
                 </h2>
                 <div class="space-y-2 mb-4">
                     <div class="flex justify-between text-sm">
-                        <ul id="carrito-lista-pago"></ul>
+                        <ul class="carrito-lista-pago"></ul>
                     </div>
                 </div>
                 <div class="border-t border-gray-200 pt-4 mb-6">
                     <div class="flex justify-between font-semibold">
                         <div >
                             <span>Total:(</span>
-                            <span id="amountItems"></span>
+                            <span class="amountItems"></span>
                             <span>productos)</span>
                         </div>
                         <div>
                             <span>$</span>
-                            <span id="total-h"></span>
+                            <span class="total-h"></span>
                         </div>
 
                     </div>
                 </div>
-                <div class="flex gap-4">
-                    <button class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
+                <div id="botones-pago" class="flex gap-4">
+                    <button id="pago-tarjeta" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
                         Pagar con tarjeta
-                    </button><button class="w-full bg-gray-400 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
+                    </button>
+                    <button id="pago-efectivo" class="w-full bg-gray-400 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
                         Pagar al finalizar
                     </button>
                 </div>
@@ -96,11 +156,208 @@
         </div>
 
     </section>
-</main>
 
+</main>
+<div id="modal" class="relative z-10 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-4 flex justify-between items-center">
+                        Resumen del pedido
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </h2>
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <ul class="carrito-lista-pago"></ul>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 pt-4 mb-6">
+                        <div class="flex justify-between font-semibold">
+                            <div>
+                                <span>Total:(</span>
+                                <span class="amountItems"></span>
+                                <span>productos)</span>
+                            </div>
+                            <div>
+                                <span>$</span>
+                                <span class="total-h"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <form id="checkout-form">
+                    <div class="px-6 py-0">
+                        <!-- Inputs Ocultos -->
+                        <input type="hidden" id="statusPa" name="statusPa" value="1">
+                        <input type="hidden" id="statusPe" name="statusPe" value="1">
+
+                        <!-- Campo Nombre -->
+                        <label for="nombreC" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Ingresa tu nombre
+                        </label>
+                        <input type="text" id="nombreC" name="nombreC" required
+                               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 ">
+                        <button id="confirmarPagoCash" type="button" onclick="handleSubmit()"
+                                class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">
+                            Ordenar
+                        </button>
+                        <button type="button" id="cancel-button"
+                                class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                            Cancelar
+                        </button>
+                    </div>
+
+                    <!-- Mensajes -->
+                    <div id="error-message" style="color: red; display: none;"></div>
+                    <div id="success-message" style="color: green; display: none;"></div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalCard" class="relative z-10 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="bg-white rounded-lg shadow-md w-full max-w-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6">Finalizar compra</h2>
+
+                    <form>
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-lg font-semibold mb-4">Información de pago</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="col-span-2">
+                                        <label for="card-number" class="block text-sm font-medium text-gray-700 mb-1">Número de tarjeta</label>
+                                        <input type="text" id="card-number" name="card-number" placeholder="1234 5678 9012 3456" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="expiry" class="block text-sm font-medium text-gray-700 mb-1">Fecha de expiración</label>
+                                        <input type="text" id="expiry" name="expiry" placeholder="MM/AA" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="cvc" class="block text-sm font-medium text-gray-700 mb-1">CVC</label>
+                                        <input type="text" id="cvc" name="cvc" placeholder="123" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-6">
+                                <h2 class="text-xl font-semibold mb-4 flex justify-between items-center">
+                                    Resumen del pedido
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </h2>
+                                <div class="space-y-2 mb-4">
+                                    <div class="flex justify-between text-sm">
+                                        <ul class="carrito-lista-pago"></ul>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4 mb-6">
+                                    <div class="flex justify-between font-semibold">
+                                        <div>
+                                            <span>Total:(</span>
+                                            <span class="amountItems"></span>
+                                            <span>productos)</span>
+                                        </div>
+                                        <div>
+                                            <span>$</span>
+                                            <span class="total-h"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button id="confirmarPagoCash" type="button" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">Pagar</button>
+                    <button type="button" id="cancel-button-2" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
-    const totalHt = document.getElementById('total-h')
-    const amountItems = document.getElementById('amountItems')
+
+    // Recupera el valor de nombreC desde sessionStorage
+    let nombreCRecuperado = sessionStorage.getItem('nombreC');
+
+    // Filtra los elementos de la lista de pedidos
+    let pedidos = document.querySelectorAll('.pedido-item');
+
+    pedidos.forEach(function(pedido) {
+        // Verifica si el nombre del pedido coincide con el valor de sessionStorage
+        if (pedido.getAttribute('data-nombre') !== nombreCRecuperado) {
+            // Si no coincide, oculta el elemento
+            pedido.style.display = 'none';
+        }
+    });
+
+
+    const confirmarPagoCash = document.getElementById('confirmarPagoCash')
+
+    const carritoContainer = document.getElementById('carrito-container')
+    const botonesPago = document.getElementById('botones-pago')
+    const modal = document.getElementById('modal');
+    const cancelButton = document.getElementById('cancel-button');
+
+    cancelButton.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    function openModal() {
+        modal.classList.remove('hidden');
+    }
+    const modalCard = document.getElementById('modalCard');
+    const cancelButton2 = document.getElementById('cancel-button-2');
+    const pagoTarjeta = document.getElementById('pago-tarjeta')
+    const pagos = document.getElementById('pagos')
+
+    pagoTarjeta.addEventListener('click', () => {
+        modalCard.classList.remove('hidden');
+    });
+    cancelButton2.addEventListener('click', () => {
+        modalCard.classList.add('hidden');
+    });
+    let pagado = false
+
+    const carritoIzquierdo = document.getElementById('carritoIzquierdo')
+    const carritoDerecho = document.getElementById('carritoDerecho')
+
+    function procesoOrden(){
+        modal.classList.add('hidden')
+        carritoIzquierdo.classList.add('hidden')
+        botonesPago.classList.add('hidden')
+        pagos.classList.remove('hidden')
+    }
+    confirmarPagoCash.addEventListener('click', procesoOrden)
+
+
+    const cardPayment = document.getElementById('pago-tarjeta')
+    const cashPayment = document.getElementById('pago-efectivo')
+    cashPayment.addEventListener('click', openModal);
+
+    /*
+    cashPayment.addEventListener('click', ()){
+    }
+     */
+    const amountItemsElements = document.querySelectorAll('.amount-items');
+    const totalHElements = document.querySelectorAll('.total-h');
 
     let carrito = JSON.parse(sessionStorage.getItem('carrito')) || [];
 
@@ -109,13 +366,16 @@
     }
 
 
-    function renderizarCarrito() {
-        let totalAmountCart = 0;
+    // Declaración global de totalAmountCart
+    let totalAmountCart = 0;
 
+    function renderizarCarrito() {
+        totalAmountCart = 0; // Reiniciar al renderizar el carrito
 
         const listaCarrito = document.querySelector('#carrito-lista');
-        const listaCarritoPago = document.querySelector('#carrito-lista-pago');
+        const listaCarritoPagoElements = document.querySelectorAll('.carrito-lista-pago');
         listaCarrito.innerHTML = ''; // Limpiar la lista antes de renderizar
+        listaCarritoPagoElements.forEach(lista => lista.innerHTML = ''); // Limpiar todas las listas de pago
 
         // Agrupar productos por id y calcular cantidades
         const productosAgrupados = carrito.reduce((acc, producto) => {
@@ -129,39 +389,47 @@
         // Renderizar productos agrupados
         Object.values(productosAgrupados).forEach(producto => {
             const itemCarrito = document.createElement('li');
-            const itemCarritoPago = document.createElement('li')
+            const itemCarritoPago = document.createElement('li');
             let totalAmount = producto.cantidad * producto.precio;
 
             // Acumulamos el total de cada producto en totalAmountCart
             totalAmountCart += totalAmount;
 
+            // Configuración del elemento para listaCarrito
             itemCarrito.classList.add('flex', 'shadow-md', 'mb-6');
             itemCarrito.innerHTML = `
-            <div class="w-1/3 shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4">
-                <img src="public/${producto.imagen}" alt="${producto.descripcion}" class="w-full object-cover">
-            </div>
-            <div class="flex flex-col justify-between ml-3 w-1/2">
-                <p class="font-bold text-2xl">${producto.descripcion}</p>
-                <div class="flex justify-between">
-                    <span>$${totalAmount}</span>
+        <div class="w-1/3 shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4">
+            <img src="public/${producto.imagen}" alt="${producto.descripcion}" class="w-full object-cover">
+        </div>
+        <div class="flex flex-col justify-around ml-3 w-1/2">
+            <p class="font-bold text-2xl">${producto.descripcion}</p>
+            <div class="flex justify-between">
+                <span>$${totalAmount}</span>
+                <div class="flex gap-6">
                     <button class="btn-disminuir" data-id="${producto.id}">-</button>
                     <span>${producto.cantidad}</span>
                     <button class="btn-aumentar" data-id="${producto.id}">+</button>
                 </div>
             </div>
-        `;
-            itemCarritoPago.classList.add('flex', 'justify-between', 'py-2');
+        </div>
+    `;
+
+            // Configuración del elemento para listaCarritoPago
             itemCarritoPago.innerHTML = `
-            <span>${producto.descripcion} (${producto.cantidad})</span>
-        `;
+        <div class="flex justify-between items-center">
+            <span>${producto.descripcion} (x${producto.cantidad})</span>
+        </div>
+    `;
+            itemCarritoPago.classList.add('flex', 'justify-between', 'py-2');
 
             // Agregar a las respectivas listas
             listaCarrito.appendChild(itemCarrito);
-            listaCarritoPago.appendChild(itemCarritoPago);
+            listaCarritoPagoElements.forEach(lista => lista.appendChild(itemCarritoPago.cloneNode(true))); // Agregar a todas las listas de pago
         });
 
-        // Mostrar el total del carrito fuera de la función (puedes usarlo en otro lugar)
-
+        // Actualizar totales y número de elementos
+        document.querySelector('.amountItems').textContent = carrito.length; // Actualizar cantidad de productos
+        document.querySelectorAll('.total-h').forEach(el => el.textContent = totalAmountCart.toFixed(2)); // Actualizar el total en todas las clases `total-h`
 
         // Añadir eventos a los botones
         const botonesAumentar = document.querySelectorAll('.btn-aumentar');
@@ -180,10 +448,11 @@
                 disminuirCantidad(id);
             });
         });
-
-        amountItems.textContent = carrito.length
-        totalHt.textContent = totalAmountCart
     }
+
+
+
+
 
     function aumentarCantidad(id) {
         const producto = carrito.find(p => p.id === id);
@@ -195,10 +464,6 @@
 
     }
 
-
-
-
-
     function disminuirCantidad(id) {
         const index = carrito.findIndex(p => p.id === id);
         if (index !== -1) {
@@ -208,9 +473,63 @@
         renderizarCarrito();
     }
 
+    // Declaración global de totalAmountCart
 
-    // Llamar a la función para renderizar inicialmente
+    // Función para depurar el valor global
+
     renderizarCarrito();
+    async function handleSubmit() {
+        const nombreC = document.getElementById('nombreC').value;
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+
+        // Validar campos
+        if (!nombreC) {
+            errorMessage.textContent = "El campo de nombre es obligatorio.";
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            return;
+        }
+
+        // Guardar el nombre en sessionStorage
+
+        sessionStorage.clear()
+        renderizarCarrito();
+        sessionStorage.setItem('nombreC', nombreC);
+
+        // Construir los datos para enviar
+        const formData = new FormData();
+        formData.append('nombreC', nombreC);
+        formData.append('statusPa', 1);
+        formData.append('statusPe', 1);
+        formData.append('total', totalAmountCart);
+
+        try {
+            // Enviar datos con fetch
+            const response = await fetch('/paloma-proyecto/carrito', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                console.log('Pedido realizado con éxito');
+
+                // Limpiar formulario
+                document.getElementById('checkout-form').reset();
+            } else {
+                throw new Error(result.message || 'Error desconocido');
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+
+
+
+
 </script>
 
 </body>

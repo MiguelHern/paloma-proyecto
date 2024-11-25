@@ -1,7 +1,7 @@
 <?php
 
 $usuario = "root"; 
-$password = "Diasaric5*";   
+$password = "";
 $servidor = "localhost"; 
 $basededatos = "paloma"; 
 
