@@ -66,8 +66,20 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
         </div>
     </div>
 </header>
+<div id="carroVacío" class="flex items-center justify-center h-screen bg-gray-100">
+    <div class="text-center p-6 bg-white shadow-md rounded-lg">
+        <h1 class="text-2xl font-bold text-gray-700">Carro vacío</h1>
+        <p class="mt-2 text-gray-500">Parece que aún no has agregado nada al carrito.</p>
+        <a
+                href="http://localhost/paloma-proyecto/"
+                class="block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+            Empezar a agregar
+        </a>
+    </div>
+</div>
 
-<main class="flex gap-6">
+<main id="carroLleno" class="flex gap-6">
     <section id="pagos" class="orders mt-3 hidden w-2/3">
         <div class="w-full">
             <header>
@@ -284,10 +296,33 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
                         </div>
                     </form>
                 </div>
-                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                    <button id="confirmarPagoCash" type="button" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">Pagar</button>
-                    <button type="button" id="cancel-button-2" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancelar</button>
-                </div>
+                <form id="checkout-form">
+                    <div class="px-6 py-0">
+                        <!-- Inputs Ocultos -->
+                        <input type="hidden" id="statusPa" name="statusPa" value="1">
+                        <input type="hidden" id="statusPe" name="statusPe" value="1">
+
+                        <!-- Campo Nombre -->
+                        <label for="nombreC" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Ingresa tu nombre
+                        </label>
+                        <input type="text" id="nombreC" name="nombreC" required
+                               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 ">
+                        <button id="confirmarPagoCard" type="button" onclick="handleSubmit2()"
+                                class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">
+                            Ordenar
+                        </button>
+                        <button type="button" id="cancel-button-2"
+                                class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                            Cancelar
+                        </button>
+                    </div>
+                    <!-- Mensajes -->
+                </form>
             </div>
         </div>
     </div>
@@ -309,7 +344,11 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
     });
 
 
+
+
+
     const confirmarPagoCash = document.getElementById('confirmarPagoCash')
+    const confirmarPagoCard = document.getElementById('confirmarPagoCash')
 
     const carritoContainer = document.getElementById('carrito-container')
     const botonesPago = document.getElementById('botones-pago')
@@ -338,6 +377,11 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
 
     const carritoIzquierdo = document.getElementById('carritoIzquierdo')
     const carritoDerecho = document.getElementById('carritoDerecho')
+    let ordenActiva = sessionStorage.getItem('ordenActiva') === 'true';
+
+    if(ordenActiva){
+        procesoOrden()
+    }
 
     function procesoOrden(){
         modal.classList.add('hidden')
@@ -446,6 +490,7 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
             boton.addEventListener('click', () => {
                 const id = boton.getAttribute('data-id');
                 disminuirCantidad(id);
+                checarCarro()
             });
         });
     }
@@ -496,6 +541,8 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
         sessionStorage.clear()
         renderizarCarrito();
         sessionStorage.setItem('nombreC', nombreC);
+        ordenActiva = true;
+        sessionStorage.setItem('ordenActiva', 'true');
 
         // Construir los datos para enviar
         const formData = new FormData();
@@ -527,6 +574,77 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
     }
 
 
+
+
+    async function handleSubmit2() {
+        const nombreC = document.getElementById('nombreC').value;
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+
+        // Validar campos
+        if (!nombreC) {
+            errorMessage.textContent = "El campo de nombre es obligatorio.";
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            return;
+        }
+
+        // Guardar el nombre en sessionStorage
+
+        sessionStorage.clear()
+        renderizarCarrito();
+        sessionStorage.setItem('nombreC', nombreC);
+        ordenActiva = true;
+        sessionStorage.setItem('ordenActiva', 'true');
+
+        // Construir los datos para enviar
+        const formData = new FormData();
+        formData.append('nombreC', nombreC);
+        formData.append('statusPa', 2);
+        formData.append('statusPe', 1);
+        formData.append('total', totalAmountCart);
+
+        try {
+            // Enviar datos con fetch
+            const response = await fetch('/paloma-proyecto/carrito', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                console.log('Pedido realizado con éxito');
+
+                // Limpiar formulario
+                document.getElementById('checkout-form').reset();
+            } else {
+                throw new Error(result.message || 'Error desconocido');
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const carroLleno = document.getElementById('carroLleno')
+    const carroVacio = document.getElementById('carroVacío')
+
+    function checarCarro() {
+        // Obtener el carrito del sessionStorage y convertirlo en array
+        const carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+
+        // Verificar si el carrito tiene elementos
+        if (carrito.length > 0 || ordenActiva === true) {
+            carroLleno.classList.remove('hidden');
+            carroVacio.classList.add('hidden');
+        } else {
+            carroLleno.classList.add('hidden');
+            carroVacio.classList.remove('hidden');
+        }
+    }
+
+    // Llamar a la función al cargar
+    checarCarro();
 
 
 
