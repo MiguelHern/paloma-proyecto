@@ -2,40 +2,34 @@
 include('../controller/conexion.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    header('Content-Type: application/json');
-    $data = json_decode(file_get_contents('php://input'), true);
+    if (isset($_GET['action']) && $_GET['action'] === 'delete') {
+        $idP = intval($_GET['id']);
+        header('Content-Type: application/json');
 
-    $idP = $data['idP'];
-    $statusPe = $data['statusPe'];
+        try {
+            $sql = "DELETE FROM detalle_pedido WHERE idP = ?";
+            $stmt = $conexion->prepare($sql);
+            $stmt->bind_param('i', $idP);
+            $stmt->execute();
 
-    try {
-        $sql = "UPDATE pedido SET statusPe = ? WHERE idP = ?";
-        $stmt = $conexion->prepare($sql);
-        $stmt->bind_param('ii', $statusPe, $idP);
-        $stmt->execute();
+            $sql = "DELETE FROM pedido WHERE idP = ?";
+            $stmt = $conexion->prepare($sql);
+            $stmt->bind_param('i', $idP);
+            $stmt->execute();
 
-        if ($stmt->affected_rows > 0) {
             echo json_encode(['success' => true]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'No se actualizó ningún pedido.']);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        exit;
     }
-    exit;
 }
 
 function obtenerPedidos()
 {
     global $conexion;
 
-    $sql = "SELECT 
-                p.idP, 
-                p.statusPe, 
-                prod.nombre AS producto_nombre, 
-                dp.cantidad, 
-                dp.subtotal, 
-                p.total
+    $sql = "SELECT p.idP, p.statusPe, prod.nombre, dp.cantidad, dp.subtotal, p.total
             FROM pedido p
             INNER JOIN detalle_pedido dp ON p.idP = dp.idP
             INNER JOIN producto prod ON dp.idPr = prod.idPr
@@ -45,14 +39,7 @@ function obtenerPedidos()
 
     $pedidos = [];
     while ($row = $result->fetch_assoc()) {
-        $pedidos[] = [
-            'idP' => $row['idP'],
-            'statusPe' => $row['statusPe'],
-            'nombre' => $row['producto_nombre'],
-            'cantidad' => $row['cantidad'],
-            'subtotal' => $row['subtotal'],
-            'total' => $row['total']
-        ];
+        $pedidos[] = $row;
     }
 
     return $pedidos;
