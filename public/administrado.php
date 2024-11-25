@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PalomaApp</title>
+  <title>PalomaApp - Administrador</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
@@ -13,7 +13,7 @@
   <div class="flex flex-col h-screen">
     <!-- Encabezado -->
     <header class="bg-white shadow-lg p-6 border-b border-gray-200">
-      <h1 class="text-3xl font-semibold text-gray-800">PalomaApp</h1>
+      <h1 class="text-3xl font-semibold text-gray-800">PalomaApp - Administrador</h1>
     </header>
 
     <!-- Contenido debajo del encabezado -->
@@ -23,8 +23,13 @@
         <nav class="mt-5">
           <ul>
             <li class="mb-5">
-              <a href="#" class="text-lg font-medium text-gray-700 hover:underline">
+              <a href="#" id="dashboard" class="text-lg font-medium text-gray-700 hover:underline">
                 Dashboard
+              </a>
+            </li>
+            <li class="mb-5">
+              <a href="#" id="addEmployee" class="text-lg font-medium text-gray-700 hover:underline">
+                Agregar empleados
               </a>
             </li>
           </ul>
@@ -40,108 +45,91 @@
     </div>
   </div>
 
-  <!-- Modal de pago -->
-  <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
-    <div class="bg-white w-1/3 rounded-lg shadow-lg p-6 relative">
-      <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
-        <i class="fas fa-times text-2xl"></i>
-      </button>
-      <div id="modalContent"></div>
-    </div>
-  </div>
-
   <script>
-    let selectedOrderId = null;
-    let selectedTotal = null;
+    // Manejador para mostrar las cards al hacer clic en "Dashboard"
+    document.getElementById('dashboard').addEventListener('click', (e) => {
+      e.preventDefault();
+      const container = document.getElementById('cardsContainer');
 
-    function openPaymentModal(orderId, total) {
-      selectedOrderId = orderId;
-      selectedTotal = total;
-      document.getElementById('modalContent').innerHTML = `
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Método de Pago</h3>
-        <p class="text-gray-600 mb-4">Total: $${total}</p>
-        <div class="flex justify-around">
-          <button onclick="showCashForm()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Efectivo</button>
-          <button onclick="showCardForm()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Tarjeta</button>
+      // Mostrar las cards originales cargando el archivo PHP
+      fetch('../controller/get_pedidos.php')
+        .then(response => response.text())
+        .then(data => {
+          container.innerHTML = data;
+        })
+        .catch(error => console.error("Error cargando las cards:", error));
+    });
+
+    // Manejador para mostrar el formulario al hacer clic en "Agregar empleados"
+    document.getElementById('addEmployee').addEventListener('click', (e) => {
+      e.preventDefault();
+      const container = document.getElementById('cardsContainer');
+      container.innerHTML = `
+        <div class="w-full bg-white p-6 rounded-lg shadow-lg">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-6">Agregar Nuevo Empleado</h2>
+          <form id="addEmployeeForm" class="space-y-4">
+            <div>
+              <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
+              <input id="name" name="name" type="text" required class="w-full mt-1 p-2 border rounded">
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700">Correo</label>
+              <input id="email" name="email" type="email" required class="w-full mt-1 p-2 border rounded">
+            </div>
+            <div>
+              <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+              <div class="relative">
+                <input id="password" name="password" type="password" required class="w-full mt-1 p-2 border rounded pr-10">
+                <span id="togglePassword" class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-gray-600">
+                  <i class="fas fa-eye"></i>
+                </span>
+              </div>
+            </div>
+            <div>
+              <label for="role" class="block text-sm font-medium text-gray-700">Rol</label>
+              <select id="role" name="role" required class="w-full mt-1 p-2 border rounded">
+                <option value="1">Administrador</option>
+                <option value="2">Cocinero</option>
+              </select>
+            </div>
+            <button type="button" id="saveEmployee" class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Guardar Empleado</button>
+          </form>
         </div>
       `;
-      document.getElementById('paymentModal').classList.remove('hidden');
-    }
 
-    function closeModal() {
-      document.getElementById('paymentModal').classList.add('hidden');
-    }
+      // Manejador para alternar visibilidad de la contraseña
+      const togglePassword = document.getElementById('togglePassword');
+      const passwordField = document.getElementById('password');
+      togglePassword.addEventListener('click', () => {
+        const isPasswordVisible = passwordField.type === 'text';
+        passwordField.type = isPasswordVisible ? 'password' : 'text';
+        togglePassword.innerHTML = `<i class="fas ${isPasswordVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>`;
+      });
 
-    function showCashForm() {
-      document.getElementById('modalContent').innerHTML = `
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Pago en Efectivo</h3>
-        <p class="text-gray-600 mb-4">Total: $${selectedTotal}</p>
-        <label for="cashAmount" class="block text-gray-700 mb-2">Cantidad con la que paga:</label>
-        <input id="cashAmount" type="number" class="w-full border rounded-lg p-2 mb-4" placeholder="Ingresa el monto">
-        <button onclick="confirmCashPayment()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition w-full">Confirmar Pago</button>
-        <button onclick="openPaymentModal(selectedOrderId, selectedTotal)" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition w-full mt-4">Regresar</button>
-      `;
-    }
+      // Manejo del envío del formulario
+      document.getElementById('saveEmployee').addEventListener('click', () => {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const role = document.getElementById('role').value;
 
-    function showCardForm() {
-      document.getElementById('modalContent').innerHTML = `
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Pago con Tarjeta</h3>
-        <p class="text-gray-600 mb-4">Total: $${selectedTotal}</p>
-        <label for="cardNumber" class="block text-gray-700 mb-2">Número de Tarjeta:</label>
-        <input id="cardNumber" type="text" class="w-full border rounded-lg p-2 mb-4" placeholder="Ingresa el número de tarjeta">
-        <button onclick="confirmCardPayment()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition w-full">Confirmar Pago</button>
-        <button onclick="openPaymentModal(selectedOrderId, selectedTotal)" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition w-full mt-4">Regresar</button>
-      `;
-    }
-
-    function confirmCashPayment() {
-      const cashAmount = parseFloat(document.getElementById('cashAmount').value);
-      if (isNaN(cashAmount) || cashAmount < selectedTotal) {
-        alert(`El monto ingresado no es suficiente. Faltan $${(selectedTotal - cashAmount).toFixed(2)}.`);
-        return;
-      }
-      const change = cashAmount - selectedTotal;
-      if (change > 0) {
-        alert(`Pago confirmado. Tu cambio es: $${change.toFixed(2)}.`);
-      }
-      confirmPayment("efectivo");
-    }
-
-    function confirmCardPayment() {
-      const cardNumber = document.getElementById('cardNumber').value.trim();
-      if (!cardNumber || cardNumber.length < 16 || cardNumber.length > 19 || !/^\d+$/.test(cardNumber)) {
-        alert("Por favor, ingresa un número de tarjeta válido.");
-        return;
-      }
-      confirmPayment("tarjeta");
-    }
-
-    function confirmPayment(method) {
-      fetch(`../controller/get_pedidos.php?action=pay&id=${selectedOrderId}&method=${method}`)
+        fetch('../controller/add_employee.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `name=${name}&email=${email}&password=${password}&role=${role}`
+        })
         .then(response => response.json())
         .then(data => {
-          if (data.success) {
-            updateCardStatus(selectedOrderId, method);
-            closeModal();
+          if (data.status === "success") {
+            alert("Empleado agregado correctamente.");
+            document.getElementById('dashboard').click(); // Regresa a las cards automáticamente
           } else {
-            console.error("Error:", data.error || "Error desconocido.");
+            alert("Error: " + data.message);
           }
         })
         .catch(error => console.error("Error:", error));
-    }
-
-    function updateCardStatus(orderId, method) {
-      const card = document.querySelector(`[data-id="${orderId}"]`);
-      if (card) {
-        card.querySelector('.payment-status').textContent = "Pagado";
-        card.querySelector('.payment-status').classList.remove('text-red-500');
-        card.querySelector('.payment-status').classList.add('text-green-500');
-        const paymentButton = card.querySelector('.payment-button');
-        if (paymentButton) {
-          paymentButton.remove();
-        }
-      }
-    }
+      });
+    });
   </script>
 </body>
 </html>
