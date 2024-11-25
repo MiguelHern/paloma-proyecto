@@ -1,51 +1,59 @@
 <?php
-include('conexion.php'); // Incluir la conexión a la base de datos
+include('../controller/conexion.php');
 
-// Función para obtener los pedidos con los productos relacionados
-function obtenerPedidos() {
-    global $conexion;
-
-    $sql = "SELECT p.idP, pr.nombre, dp.cantidad, dp.subtotal, p.total, p.statusPe
-            FROM detalle_pedido dp
-            INNER JOIN pedido p ON dp.idP = p.idP
-            INNER JOIN producto pr ON dp.idPr = pr.idPr";
-
-    $resultado = $conexion->query($sql);
-
-    if ($resultado->num_rows > 0) {
-        $pedidos = [];
-        while ($row = $resultado->fetch_assoc()) {
-            $pedidos[] = $row;
-        }
-        return $pedidos;
-    } else {
-        return null;
-    }
-}
-
-// Verificar si hay una solicitud POST para actualizar el estado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
     $data = json_decode(file_get_contents('php://input'), true);
 
-    if (isset($data['idP']) && isset($data['statusPe'])) {
-        $idP = $data['idP'];
-        $statusPe = $data['statusPe'];
+    $idP = $data['idP'];
+    $statusPe = $data['statusPe'];
 
-        $updateQuery = "UPDATE pedido SET statusPe = ? WHERE idP = ?";
-        $stmt = $conexion->prepare($updateQuery);
-        $stmt->bind_param("ii", $statusPe, $idP);
+    try {
+        $sql = "UPDATE pedido SET statusPe = ? WHERE idP = ?";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param('ii', $statusPe, $idP);
+        $stmt->execute();
 
-        if ($stmt->execute()) {
+        if ($stmt->affected_rows > 0) {
             echo json_encode(['success' => true]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado']);
+            echo json_encode(['success' => false, 'message' => 'No se actualizó ningún pedido.']);
         }
-
-        $stmt->close();
-        exit;
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
-        exit;
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
+    exit;
 }
-?>
+
+function obtenerPedidos()
+{
+    global $conexion;
+
+    $sql = "SELECT 
+                p.idP, 
+                p.statusPe, 
+                prod.nombre AS producto_nombre, 
+                dp.cantidad, 
+                dp.subtotal, 
+                p.total
+            FROM pedido p
+            INNER JOIN detalle_pedido dp ON p.idP = dp.idP
+            INNER JOIN producto prod ON dp.idPr = prod.idPr
+            ORDER BY p.idP";
+
+    $result = $conexion->query($sql);
+
+    $pedidos = [];
+    while ($row = $result->fetch_assoc()) {
+        $pedidos[] = [
+            'idP' => $row['idP'],
+            'statusPe' => $row['statusPe'],
+            'nombre' => $row['producto_nombre'],
+            'cantidad' => $row['cantidad'],
+            'subtotal' => $row['subtotal'],
+            'total' => $row['total']
+        ];
+    }
+
+    return $pedidos;
+}

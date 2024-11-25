@@ -20,7 +20,6 @@ $pedidos = obtenerPedidos();
             <div class="p-4 font-bold text-lg">PalomaApp</div>
             <ul>
                 <li class="py-2 px-4 hover:bg-gray-200 cursor-pointer">Pedidos</li>
-
             </ul>
         </aside>
 
@@ -37,7 +36,7 @@ $pedidos = obtenerPedidos();
                                 <p class="text-sm text-gray-700">Cantidad: <?= $pedido['cantidad'] ?></p>
                                 <p class="text-sm text-gray-700">Subtotal: $<?= number_format($pedido['subtotal'], 2) ?></p>
                                 <p class="text-sm text-gray-700">Total: $<?= number_format($pedido['total'], 2) ?></p>
-                                <button class="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600" onclick="openModal(<?= $pedido['idP'] ?>)">Ver estado</button>
+                                <button class="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600" onclick="openModal(<?= $pedido['idP'] ?>, <?= $pedido['statusPe'] ?>)">Ver estado</button>
                             </div>
                         <?php endforeach; ?>
                     <?php else : ?>
@@ -53,9 +52,9 @@ $pedidos = obtenerPedidos();
             <h2 class="text-xl font-bold mb-4">Estado del Pedido</h2>
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center w-full space-x-4">
-                    <button onclick="updateProgress(1)" id="step-1" class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center focus:outline-none">1</button>
+                    <button onclick="updateProgress(1)" id="step-1" class="w-8 h-8 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center focus:outline-none">1</button>
                     <div class="flex-1 bg-gray-200 h-1 relative">
-                        <div id="progress-bar-1" class="absolute top-0 left-0 h-1 bg-blue-500 transition-all"></div>
+                        <div id="progress-bar-1" class="absolute top-0 left-0 h-1 bg-blue-500 hidden transition-all"></div>
                     </div>
                     <button onclick="updateProgress(2)" id="step-2" class="w-8 h-8 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center focus:outline-none">2</button>
                     <div class="flex-1 bg-gray-200 h-1 relative">
@@ -81,48 +80,61 @@ $pedidos = obtenerPedidos();
         let currentStep = 1;
         let orderId = null;
 
-        function openModal(id) {
+        function openModal(id, statusPe) {
             orderId = id;
+            currentStep = statusPe; // Recupera el estado actual del pedido
             modal.classList.remove("hidden");
-            updateProgress(currentStep);
+            initializeProgress(currentStep); // Inicializa la línea de progreso
         }
 
         function closeModal() {
             modal.classList.add("hidden");
         }
 
-        function updateProgress(step) {
-            currentStep = step;
-
+        function initializeProgress(step) {
             const progressBar1 = document.getElementById("progress-bar-1");
             const progressBar2 = document.getElementById("progress-bar-2");
             const step1 = document.getElementById("step-1");
             const step2 = document.getElementById("step-2");
             const step3 = document.getElementById("step-3");
 
+            // Reinicia todos los estilos
             [step1, step2, step3].forEach((el) => {
                 el.classList.remove("bg-blue-500", "text-white");
                 el.classList.add("bg-gray-300", "text-gray-500");
             });
 
-            if (step === 1) {
-                progressBar1.style.width = "0%";
-                progressBar2.style.width = "0%";
-            } else if (step === 2) {
+            // Reinicia las líneas de progreso
+            progressBar1.style.width = "0%";
+            progressBar2.style.width = "0%";
+            progressBar1.classList.add("hidden");
+            progressBar2.classList.add("hidden");
+
+            // Configura las líneas de progreso y botones según el estado
+            if (step >= 2) {
                 progressBar1.style.width = "100%";
-                progressBar2.style.width = "0%";
-                progressBar2.classList.remove("hidden");
-            } else if (step === 3) {
-                progressBar1.style.width = "100%";
+                progressBar1.classList.remove("hidden");
+            }
+            if (step === 3) {
                 progressBar2.style.width = "100%";
+                progressBar2.classList.remove("hidden");
             }
 
+            // Activa los botones hasta el estado actual
             for (let i = 1; i <= step; i++) {
                 const currentStepButton = document.getElementById(`step-${i}`);
                 currentStepButton.classList.remove("bg-gray-300", "text-gray-500");
                 currentStepButton.classList.add("bg-blue-500", "text-white");
             }
+        }
 
+        function updateProgress(step) {
+            currentStep = step; // Actualiza el paso actual
+
+            // Actualiza visualmente el progreso
+            initializeProgress(step);
+
+            // Guarda el nuevo estado en la base de datos
             fetch('../controller/carrusel.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

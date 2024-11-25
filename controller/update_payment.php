@@ -34,7 +34,7 @@
       <!-- Contenido principal -->
       <main class="flex-1 p-6 overflow-y-auto bg-gray-50">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="cardsContainer">
-          <?php include '../controller/get_pedidos.php'; ?>
+          <?php include 'get_pedidos.php'; ?>
         </div>
       </main>
     </div>
@@ -47,6 +47,17 @@
         <i class="fas fa-times text-2xl"></i>
       </button>
       <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación -->
+  <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
+    <div class="bg-white w-1/3 rounded-lg shadow-lg p-6">
+      <h3 id="confirmationMessage" class="text-lg font-semibold text-gray-800 mb-4"></h3>
+      <div class="flex justify-around">
+        <button id="confirmButton" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Confirmar</button>
+        <button onclick="closeConfirmationModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">Cancelar</button>
+      </div>
     </div>
   </div>
 
@@ -72,14 +83,18 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
+    function closeConfirmationModal() {
+      document.getElementById('confirmationModal').classList.add('hidden');
+    }
+
     function showCashForm() {
       document.getElementById('modalContent').innerHTML = `
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Pago en Efectivo</h3>
         <p class="text-gray-600 mb-4">Total: $${selectedTotal}</p>
-        <label for="cashAmount" class="block text-gray-700 mb-2">Cantidad con la que paga:</label>
-        <input id="cashAmount" type="number" class="w-full border rounded-lg p-2 mb-4" placeholder="Ingresa el monto">
+        <label for="cashAmount" class="block text-gray-700 mb-2">Con cuánto paga:</label>
+        <input id="cashAmount" type="number" class="w-full border rounded-lg p-2 mb-4" placeholder="Ingrese el monto">
         <button onclick="confirmCashPayment()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition w-full">Confirmar Pago</button>
-        <button onclick="openPaymentModal(selectedOrderId, selectedTotal)" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition w-full mt-4">Regresar</button>
+        <button onclick="resetModalContent()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition w-full">Regresar</button>
       `;
     }
 
@@ -88,49 +103,59 @@
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Pago con Tarjeta</h3>
         <p class="text-gray-600 mb-4">Total: $${selectedTotal}</p>
         <label for="cardNumber" class="block text-gray-700 mb-2">Número de Tarjeta:</label>
-        <input id="cardNumber" type="text" class="w-full border rounded-lg p-2 mb-4" placeholder="Ingresa el número de tarjeta">
+        <input id="cardNumber" type="text" class="w-full border rounded-lg p-2 mb-4" placeholder="Ingrese el número de tarjeta">
         <button onclick="confirmCardPayment()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition w-full">Confirmar Pago</button>
-        <button onclick="openPaymentModal(selectedOrderId, selectedTotal)" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition w-full mt-4">Regresar</button>
+        <button onclick="resetModalContent()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition w-full">Regresar</button>
       `;
     }
 
     function confirmCashPayment() {
       const cashAmount = parseFloat(document.getElementById('cashAmount').value);
       if (isNaN(cashAmount) || cashAmount < selectedTotal) {
-        alert(`El monto ingresado no es suficiente. Faltan $${(selectedTotal - cashAmount).toFixed(2)}.`);
+        openErrorModal("El monto ingresado no es suficiente.");
         return;
       }
       const change = cashAmount - selectedTotal;
-      if (change > 0) {
-        alert(`Pago confirmado. Tu cambio es: $${change.toFixed(2)}.`);
-      }
-      confirmPayment("efectivo");
+      openConfirmationModal(`¿Confirmar pago en efectivo? Cambio: $${change.toFixed(2)}`, completePayment);
     }
 
     function confirmCardPayment() {
       const cardNumber = document.getElementById('cardNumber').value.trim();
-      if (!cardNumber || cardNumber.length < 16 || cardNumber.length > 19 || !/^\d+$/.test(cardNumber)) {
-        alert("Por favor, ingresa un número de tarjeta válido.");
+      if (!cardNumber) {
+        openErrorModal("Por favor ingrese el número de tarjeta.");
         return;
       }
-      confirmPayment("tarjeta");
+      openConfirmationModal("¿Confirmar pago con tarjeta?", completePayment);
     }
 
-    function confirmPayment(method) {
-      fetch(`../controller/get_pedidos.php?action=pay&id=${selectedOrderId}&method=${method}`)
+    function openConfirmationModal(message, onConfirm) {
+      document.getElementById('confirmationMessage').innerText = message;
+      document.getElementById('confirmButton').onclick = onConfirm;
+      document.getElementById('confirmationModal').classList.remove('hidden');
+    }
+
+    function completePayment() {
+      fetch('update_payment.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: selectedOrderId })
+      })
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            updateCardStatus(selectedOrderId, method);
+            updateCardStatus(selectedOrderId);
             closeModal();
+            closeConfirmationModal();
           } else {
-            console.error("Error:", data.error || "Error desconocido.");
+            openErrorModal("Error al procesar el pago: " + (data.error || "desconocido."));
           }
         })
-        .catch(error => console.error("Error:", error));
+        .catch(error => {
+          openErrorModal("Hubo un problema con la solicitud: " + error.message);
+        });
     }
 
-    function updateCardStatus(orderId, method) {
+    function updateCardStatus(orderId) {
       const card = document.querySelector(`[data-id="${orderId}"]`);
       if (card) {
         card.querySelector('.payment-status').textContent = "Pagado";
