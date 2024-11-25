@@ -29,7 +29,7 @@ function obtenerPedidos()
 {
     global $conexion;
 
-    $sql = "SELECT p.idP, p.statusPe, prod.nombre, dp.cantidad, dp.subtotal, p.total
+    $sql = "SELECT p.idP, p.statusPe, prod.nombre, p.nombreC, dp.cantidad, dp.subtotal, p.total
             FROM pedido p
             INNER JOIN detalle_pedido dp ON p.idP = dp.idP
             INNER JOIN producto prod ON dp.idPr = prod.idPr

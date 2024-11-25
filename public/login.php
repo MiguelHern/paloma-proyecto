@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Home</title>
+    <title>Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body class="bg-gray-100">
   <div class="flex h-screen">
@@ -36,9 +37,22 @@
         <div id="password-form" class="hidden">
           <h2 class="text-xl font-bold text-gray-800 text-center">Verifica tu contraseña</h2>
           <form id="password-form-content" class="mt-6">
-            <div class="mb-4">
+            <div class="mb-4 relative">
               <label for="password" class="block text-gray-600 font-medium">Contraseña</label>
-              <input type="password" id="password" name="password" class="w-full mt-2 px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:outline-none">
+              <div class="relative">
+                <input 
+                  type="password" 
+                  id="password" 
+                  name="password" 
+                  class="w-full mt-2 px-4 py-2 border border-gray-300 rounded-md pr-10 focus:ring focus:ring-blue-200 focus:outline-none"
+                >
+                <span 
+                  id="togglePassword" 
+                  class="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-600"
+                >
+                  <i class="fas fa-eye"></i>
+                </span>
+              </div>
             </div>
             <button type="button" id="btn-password" class="w-full mt-4 py-2 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-600">Verificar</button>
             <button type="button" id="btn-back-to-email" class="w-full mt-4 py-2 bg-gray-500 text-white font-bold rounded-md hover:bg-gray-600">Regresar</button>
@@ -66,6 +80,8 @@
       const modal = document.getElementById('modal');
       const modalMessage = document.getElementById('modal-message');
       const closeModal = document.getElementById('close-modal');
+      const togglePassword = document.getElementById('togglePassword');
+      const passwordField = document.getElementById('password');
 
       // Manejo del modal
       function showModal(message) {
@@ -73,6 +89,13 @@
         modal.classList.remove('hidden');
       }
       closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+
+      // Mostrar/Ocultar contraseña
+      togglePassword.addEventListener('click', () => {
+        const isPasswordVisible = passwordField.type === 'text';
+        passwordField.type = isPasswordVisible ? 'password' : 'text';
+        togglePassword.innerHTML = `<i class="fas ${isPasswordVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>`;
+      });
 
       // Verificar correo
       btnEmail.addEventListener('click', () => {
@@ -95,7 +118,7 @@
         .catch(err => console.error(err));
       });
 
-      // Verificar contraseña
+      // Verificar contraseña y redirigir según el rol
       btnPassword.addEventListener('click', () => {
         const correo = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -108,7 +131,8 @@
         .then(response => response.json())
         .then(data => {
           if (data.status === "success") {
-            showModal("Inicio de sesión exitoso.");
+            // Redirigir según el rol
+            window.location.href = data.redirect;
           } else {
             showModal(data.message);
           }
