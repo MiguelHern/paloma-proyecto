@@ -39,6 +39,7 @@ $pedidos = obtenerPedidos();
                                     </button>
                                 </div>
                                 <p class="text-sm text-gray-500 mb-2">Producto: <?= $pedido['nombre'] ?></p>
+                                <p class="text-sm text-gray-700 mb-2">Cliente: <?= htmlspecialchars($pedido['nombreC']) ?></p>
                                 <p class="text-sm text-gray-700">Cantidad: <?= $pedido['cantidad'] ?></p>
                                 <p class="text-sm text-gray-700">Subtotal: $<?= number_format($pedido['subtotal'], 2) ?></p>
                                 <p class="text-sm text-gray-700">Total: $<?= number_format($pedido['total'], 2) ?></p>
