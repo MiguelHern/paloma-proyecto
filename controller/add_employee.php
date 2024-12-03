@@ -31,10 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("sssi", $name, $email, $encrypted_password, $role);
 
     if ($stmt->execute()) {
-        echo json_encode(["status" => "success"]);
+        echo json_encode([
+            "status" => "success"
+        ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Error al agregar el empleado."]);
     }
+
 
     $stmt->close();
     $conexion->close();

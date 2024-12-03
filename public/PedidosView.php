@@ -1,3 +1,20 @@
+<?php
+// Filtrar los pedidos en dos categorías: Pagados (statusPe = 3) y En Proceso (statusPe = 1 o 2)
+$pedidosPagados = [];
+$pedidosEnProceso = [];
+
+foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
+    foreach ($pedidosStatus as $pedido) {
+        if ($pedido['statusPe'] === 3) {
+            // Pedidos Pagados
+            $pedidosPagados[] = $pedido;
+        } else {
+            // Pedidos En Proceso
+            $pedidosEnProceso[] = $pedido;
+        }
+    }
+}
+?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -54,8 +71,8 @@
         <h1 class="text-2xl font-bold text-gray-700">Carro vacío</h1>
         <p class="mt-2 text-gray-500">Parece que aún no has agregado nada al carrito.</p>
         <a
-                href="http://localhost/paloma-proyecto/"
-                class="block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            href="http://localhost/paloma-proyecto/"
+            class="block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
             Empezar a agregar
         </a>
@@ -63,6 +80,48 @@
 </div>
 
 <main id="carroLleno" class="flex gap-6">
+    <section id="pagos" class="orders mt-3 hidden w-2/3">
+        <div class="w-full">
+            <header>
+                <h2 class="ml-4 text-2xl font-semibold">Listos</h2>
+            </header>
+            <div class="relative overflow-hidden">
+                <ul id="pedidos-pagados">
+                    <?php foreach ($pedidosPagados as $pedido): ?>
+                        <li class="p-4 rounded-lg pedido-item" data-nombre="<?php echo htmlspecialchars($pedido['nombreC']); ?>">
+                            <h3 class="text-lg font-bold">Pedido de: <?php echo htmlspecialchars($pedido['nombreC']); ?></h3>
+                            <p>Fecha: <?php echo date("d-m-Y", strtotime($pedido['fecha'])); ?></p>
+                            <p>Hora: <?php echo $pedido['hora']; ?></p>
+                            <p>Total: $<?php echo number_format($pedido['total'], 2); ?></p>
+                            <p>Status de Pago: Pagado</p>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+
+            <!-- Mostrar los pedidos En Proceso -->
+            <header>
+                <h2 class="ml-4 text-2xl font-semibold">En Proceso</h2>
+            </header>
+            <div class="relative overflow-hidden">
+                <ul id="pedidos-en-proceso">
+                    <?php foreach ($pedidosEnProceso as $pedido): ?>
+                        <li class="p-4 rounded-lg pedido-item" data-nombre="<?php echo htmlspecialchars($pedido['nombreC']); ?>">
+                            <h3 class="text-lg font-bold">Pedido de: <?php echo htmlspecialchars($pedido['nombreC']); ?></h3>
+                            <p>Fecha: <?php echo date("d-m-Y", strtotime($pedido['fecha'])); ?></p>
+                            <p>Hora: <?php echo $pedido['hora']; ?></p>
+                            <p>Total: $<?php echo number_format($pedido['total'], 2); ?></p>
+                            <p>Status de Pago:
+                                <?php echo ($pedido['statusPa'] == 1) ? 'Pendiente' : 'En Proceso'; ?>
+                            </p>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        </div>
+
+
+    </section>
     <section id="carritoIzquierdo" class="w-2/3">
         <div id="carrito-container">
             <ul id="carrito-lista"></ul>
@@ -100,6 +159,9 @@
                     <button id="pago-tarjeta" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
                         Pagar con tarjeta
                     </button>
+                    <button id="pago-efectivo" class="w-full bg-gray-400 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
+                        Pagar al finalizar
+                    </button>
                 </div>
 
             </div>
@@ -108,6 +170,74 @@
     </section>
 
 </main>
+<div id="modal" class="relative z-10 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-4 flex justify-between items-center">
+                        Resumen del pedido
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </h2>
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <ul class="carrito-lista-pago"></ul>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 pt-4 mb-6">
+                        <div class="flex justify-between font-semibold">
+                            <div>
+                                <span>Total:(</span>
+                                <span class="amountItems"></span>
+                                <span>productos)</span>
+                            </div>
+                            <div>
+                                <span>$</span>
+                                <span class="total-h"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <form id="checkout-form">
+                    <div class="px-6 py-0">
+                        <!-- Inputs Ocultos -->
+                        <input type="hidden" id="statusPa" name="statusPa" value="1">
+                        <input type="hidden" id="statusPe" name="statusPe" value="1">
+
+                        <!-- Campo Nombre -->
+                        <label for="nombreC" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Ingresa tu nombre
+                        </label>
+                        <input type="text" id="nombreC" name="nombreC" required
+                               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 ">
+                        <button id="confirmarPagoCash" type="button" onclick="handleSubmit()"
+                                class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">
+                            Ordenar
+                        </button>
+                        <button type="button" id="cancel-button"
+                                class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                            Cancelar
+                        </button>
+                    </div>
+
+                    <!-- Mensajes -->
+                    <div id="error-message" style="color: red; display: none;"></div>
+                    <div id="success-message" style="color: green; display: none;"></div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="modalCard" class="relative z-10 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" aria-hidden="true"></div>
 
@@ -199,11 +329,39 @@
 </div>
 <script>
 
+    // Recupera el valor de nombreC desde sessionStorage
+    let nombreCRecuperado = sessionStorage.getItem('nombreC');
+
+    // Filtra los elementos de la lista de pedidos
+    let pedidos = document.querySelectorAll('.pedido-item');
+
+    pedidos.forEach(function(pedido) {
+        // Verifica si el nombre del pedido coincide con el valor de sessionStorage
+        if (pedido.getAttribute('data-nombre') !== nombreCRecuperado) {
+            // Si no coincide, oculta el elemento
+            pedido.style.display = 'none';
+        }
+    });
+
+
+
+
+
+    const confirmarPagoCash = document.getElementById('confirmarPagoCash')
     const confirmarPagoCard = document.getElementById('confirmarPagoCash')
 
     const carritoContainer = document.getElementById('carrito-container')
     const botonesPago = document.getElementById('botones-pago')
     const modal = document.getElementById('modal');
+    const cancelButton = document.getElementById('cancel-button');
+
+    cancelButton.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    function openModal() {
+        modal.classList.remove('hidden');
+    }
     const modalCard = document.getElementById('modalCard');
     const cancelButton2 = document.getElementById('cancel-button-2');
     const pagoTarjeta = document.getElementById('pago-tarjeta')
@@ -215,15 +373,33 @@
     cancelButton2.addEventListener('click', () => {
         modalCard.classList.add('hidden');
     });
+    let pagado = false
+
+    const carritoIzquierdo = document.getElementById('carritoIzquierdo')
+    const carritoDerecho = document.getElementById('carritoDerecho')
+    let ordenActiva = sessionStorage.getItem('ordenActiva') === 'true';
+
+    if(ordenActiva){
+        procesoOrden()
+    }
+
+    function procesoOrden(){
+        modal.classList.add('hidden')
+        carritoIzquierdo.classList.add('hidden')
+        botonesPago.classList.add('hidden')
+        pagos.classList.remove('hidden')
+    }
+    confirmarPagoCash.addEventListener('click', procesoOrden)
+
 
     const cardPayment = document.getElementById('pago-tarjeta')
+    const cashPayment = document.getElementById('pago-efectivo')
+    cashPayment.addEventListener('click', openModal);
 
-
-
-
-
-
-
+    /*
+    cashPayment.addEventListener('click', ()){
+    }
+     */
     const amountItemsElements = document.querySelectorAll('.amount-items');
     const totalHElements = document.querySelectorAll('.total-h');
 
@@ -365,6 +541,8 @@
         sessionStorage.clear()
         renderizarCarrito();
         sessionStorage.setItem('nombreC', nombreC);
+        ordenActiva = true;
+        sessionStorage.setItem('ordenActiva', 'true');
 
         // Construir los datos para enviar
         const formData = new FormData();
@@ -413,7 +591,12 @@
 
         // Guardar el nombre en sessionStorage
 
+        sessionStorage.clear()
         renderizarCarrito();
+        sessionStorage.setItem('nombreC', nombreC);
+        ordenActiva = true;
+        sessionStorage.setItem('ordenActiva', 'true');
+        sessionStorage.setItem('ordenActiva', 'true');
 
         // Construir los datos para enviar
         const formData = new FormData();
@@ -452,7 +635,7 @@
         const carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
 
         // Verificar si el carrito tiene elementos
-        if (carrito.length > 0) {
+        if (carrito.length > 0 || ordenActiva === true) {
             carroLleno.classList.remove('hidden');
             carroVacio.classList.add('hidden');
         } else {

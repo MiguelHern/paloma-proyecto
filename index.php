@@ -5,7 +5,7 @@ $config = require 'config/config.php';
 
 // Obtener la ruta solicitada
 $requestUri = $_SERVER['REQUEST_URI'];
-$baseUri = '/paloma'; // Cambia al nombre de tu carpeta en htdocs
+$baseUri = '/paloma-proyecto'; // Cambia al nombre de tu carpeta en htdocs
 $route = str_replace($baseUri, '', $requestUri);
 $route = trim($route, '/');
 
