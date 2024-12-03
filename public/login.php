@@ -133,9 +133,10 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === "success") {
-                        // Guardar correo y nombre en sessionStorage
+                        // Guardar correo, nombre y idU en sessionStorage
                         sessionStorage.setItem('email', data.correo);
                         sessionStorage.setItem('nombre', data.nombre);
+                        sessionStorage.setItem('idU', data.idU);
 
                         // Redirigir según el rol
                         window.location.href = data.redirect;
@@ -145,6 +146,7 @@
                 })
                 .catch(err => console.error(err));
         });
+
 
 
 

@@ -25,6 +25,10 @@
                     <path d="M1 1H2.74001C3.82001 1 4.67 1.93 4.58 3L3.75 12.96C3.61 14.59 4.89999 15.99 6.53999 15.99H17.19C18.63 15.99 19.89 14.81 20 13.38L20.54 5.88C20.66 4.22 19.4 2.87 17.73 2.87H4.82001M8 7H20M16.5 19.75C16.5 20.4404 15.9404 21 15.25 21C14.5596 21 14 20.4404 14 19.75C14 19.0596 14.5596 18.5 15.25 18.5C15.9404 18.5 16.5 19.0596 16.5 19.75ZM8.5 19.75C8.5 20.4404 7.94036 21 7.25 21C6.55964 21 6 20.4404 6 19.75C6 19.0596 6.55964 18.5 7.25 18.5C7.94036 18.5 8.5 19.0596 8.5 19.75Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </a>
+
+            <a href="http://localhost/paloma-proyecto/pedidos" class="text-sm/6 font-semibold text-gray-900">
+                <svg width="22" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <defs> <style>.cls-1{fill:none;stroke:#020202;stroke-miterlimit:10;stroke-width:1.91px;}</style> </defs> <g id="handbag"> <path class="cls-1" d="M3.41,7.23H20.59a0,0,0,0,1,0,0v12a3.23,3.23,0,0,1-3.23,3.23H6.64a3.23,3.23,0,0,1-3.23-3.23v-12A0,0,0,0,1,3.41,7.23Z"></path> <path class="cls-1" d="M8.18,10.09V5.32A3.82,3.82,0,0,1,12,1.5h0a3.82,3.82,0,0,1,3.82,3.82v4.77"></path> </g> </g></svg>
+            </a>
         </div>
         <div class="hidden lg:flex ">
             <a href="public/login.php" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
@@ -171,13 +175,6 @@
                         <!-- Inputs Ocultos -->
                         <input type="hidden" id="statusPa" name="statusPa" value="1">
                         <input type="hidden" id="statusPe" name="statusPe" value="1">
-
-                        <!-- Campo Nombre -->
-                        <label for="nombreC" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                            Ingresa tu nombre
-                        </label>
-                        <input type="text" id="nombreC" name="nombreC" required
-                               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                     </div>
 
                     <!-- Botones -->
@@ -399,31 +396,57 @@
 
 
     async function handleSubmit2() {
-        const nombreC = document.getElementById('nombreC').value;
-        const errorMessage = document.getElementById('error-message');
-        const successMessage = document.getElementById('success-message');
-
-        // Validar campos
-        if (!nombreC) {
-            errorMessage.textContent = "El campo de nombre es obligatorio.";
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
-            return;
-        }
-
-        // Guardar el nombre en sessionStorage
-
         renderizarCarrito();
+
+        // Obtener los productos del sessionStorage
+        const productos = JSON.parse(sessionStorage.getItem('carrito'));
+
+        // Crear un objeto para contar la cantidad de cada producto
+        const productosContados = {};
+
+        productos.forEach(producto => {
+            if (productosContados[producto.id]) {
+                productosContados[producto.id].cantidad++;
+            } else {
+                productosContados[producto.id] = {
+                    idPr: producto.id,
+                    descripcion: producto.descripcion,
+                    precio: parseFloat(producto.precio),
+                    cantidad: 1
+                };
+            }
+        });
+
+        // Crear un array con los detalles del pedido (idP, idPr, cantidad, subtotal)
+        const detallesPedido = Object.values(productosContados).map(producto => {
+            return {
+                idPr: producto.idPr,
+                cantidad: producto.cantidad,
+                subtotal: producto.cantidad * producto.precio
+            };
+        });
 
         // Construir los datos para enviar
         const formData = new FormData();
-        formData.append('nombreC', nombreC);
+        formData.append('nombreC', sessionStorage.getItem('nombre'));
         formData.append('statusPa', 2);
         formData.append('statusPe', 1);
         formData.append('total', totalAmountCart);
+        formData.append('idU', sessionStorage.getItem('idU'));
+
+        // Añadir los detalles del pedido
+        detallesPedido.forEach((detalle, index) => {
+            formData.append(`detalle[${index}][idPr]`, detalle.idPr);
+            formData.append(`detalle[${index}][cantidad]`, detalle.cantidad);
+            formData.append(`detalle[${index}][subtotal]`, detalle.subtotal);
+        });
+
+        console.log("Datos que se están enviando:");
+        formData.forEach((value, key) => {
+            console.log(`${key}: ${value}`);
+        });
 
         try {
-            // Enviar datos con fetch
             const response = await fetch('/paloma-proyecto/carrito', {
                 method: 'POST',
                 body: formData
@@ -433,8 +456,6 @@
 
             if (result.success) {
                 console.log('Pedido realizado con éxito');
-
-                // Limpiar formulario
                 document.getElementById('checkout-form').reset();
             } else {
                 throw new Error(result.message || 'Error desconocido');
@@ -443,6 +464,7 @@
             console.log(error)
         }
     }
+
 
     const carroLleno = document.getElementById('carroLleno')
     const carroVacio = document.getElementById('carroVacío')

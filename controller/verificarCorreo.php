@@ -53,7 +53,7 @@ if (isset($_POST["action"])) {
         } else {
             $correo = $_POST["correo"];
             $password = $_POST["password"];
-            $sql = "SELECT contraseña, nombre, rol FROM usuario WHERE correo = ?";
+            $sql = "SELECT idU, contraseña, nombre, rol FROM usuario WHERE correo = ?";
             $stmt = $conexion->prepare($sql);
             $stmt->bind_param("s", $correo);
             $stmt->execute();
@@ -64,6 +64,7 @@ if (isset($_POST["action"])) {
                 $stored_encrypted_password = $row["contraseña"];
                 $nombre = $row["nombre"];
                 $rol = $row["rol"];
+                $idU = $row["idU"];  // Recuperamos el ID de usuario
 
                 // Descifrar y comparar contraseñas
                 $decrypted_password = decrypt_password($stored_encrypted_password, $encryption_key, $cipher_method);
@@ -75,21 +76,24 @@ if (isset($_POST["action"])) {
                             "status" => "success",
                             "redirect" => "administrado.php",
                             "correo" => $correo,
-                            "nombre" => $nombre
+                            "nombre" => $nombre,
+                            "idU" => $idU  // Agregar idU a la respuesta
                         ]);
                     } elseif ($rol == 2) {
                         echo json_encode([
                             "status" => "success",
                             "redirect" => "cocinero.php",
                             "correo" => $correo,
-                            "nombre" => $nombre
+                            "nombre" => $nombre,
+                            "idU" => $idU  // Agregar idU a la respuesta
                         ]);
                     } elseif ($rol == 3) {
                         echo json_encode([
                             "status" => "success",
                             "redirect" => "../",
                             "correo" => $correo,
-                            "nombre" => $nombre
+                            "nombre" => $nombre,
+                            "idU" => $idU  // Agregar idU a la respuesta
                         ]);
                     } else {
                         echo json_encode(["status" => "error", "message" => "Rol no válido."]);

@@ -29,4 +29,8 @@ switch ($route) {
     case 'carrito':
         require 'src/controllers/client/CheckoutController.php';
         break;
+
+        case 'pedidos':
+        require 'src/controllers/client/PedidoController.php';
+        break;
 }

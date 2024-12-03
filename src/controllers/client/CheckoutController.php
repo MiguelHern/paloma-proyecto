@@ -36,8 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombreC = isset($_POST['nombreC']) ? $_POST['nombreC'] : null;
     $total = isset($_POST['total']) ? $_POST['total'] : 0;
     $statusPa = isset($_POST['statusPa']) ? $_POST['statusPa'] : 1;
+    $idU = isset($_POST['idU']) ? $_POST['idU'] : null;
 
-    if (!$nombreC || $total <= 0) {
+    if (!$nombreC || $total <= 0 || !$idU) {
         echo json_encode(['success' => false, 'message' => 'Datos inválidos.']);
         exit;
     }
@@ -47,20 +48,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn = new PDO($dsn, $dbConfig['username'], $dbConfig['password']);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        // Insertar en la base de datos
-        $sql = "INSERT INTO pedido (fecha, hora, total, statusPe, statusPa, nombreC)
-                VALUES (CURDATE(), CURTIME(), :total, 1, :statusPa, :nombreC)";
-
+        // Insertar en la tabla pedido
+        $sql = "INSERT INTO pedido (fecha, hora, total, statusPe, statusPa, nombreC, idU)
+                VALUES (CURDATE(), CURTIME(), :total, 1, :statusPa, :nombreC, :idU)";
         $stmt = $conn->prepare($sql);
         $stmt->bindParam(':total', $total);
         $stmt->bindParam(':statusPa', $statusPa);
         $stmt->bindParam(':nombreC', $nombreC);
+        $stmt->bindParam(':idU', $idU);
         $stmt->execute();
+
+        // Obtener el idP del pedido insertado
+        $idP = $conn->lastInsertId();
+
+        // Insertar en la tabla detalle_pedido
+        $detalles = $_POST['detalle']; // Recibir los detalles del pedido
+        foreach ($detalles as $detalle) {
+            $sqlDetalle = "INSERT INTO detalle_pedido (idP, idPr, cantidad, subtotal)
+                           VALUES (:idP, :idPr, :cantidad, :subtotal)";
+            $stmtDetalle = $conn->prepare($sqlDetalle);
+            $stmtDetalle->bindParam(':idP', $idP);
+            $stmtDetalle->bindParam(':idPr', $detalle['idPr']);
+            $stmtDetalle->bindParam(':cantidad', $detalle['cantidad']);
+            $stmtDetalle->bindParam(':subtotal', $detalle['subtotal']);
+            $stmtDetalle->execute();
+        }
 
         // Respuesta exitosa
         echo json_encode(['success' => true]);
+
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
     exit;
 }
+
