@@ -70,8 +70,8 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
 </header>
 <div id="carroVacío" class="flex items-center justify-center h-screen bg-gray-100">
     <div class="text-center p-6 bg-white shadow-md rounded-lg">
-        <h1 class="text-2xl font-bold text-gray-700">Carro vacío</h1>
-        <p class="mt-2 text-gray-500">Parece que aún no has agregado nada al carrito.</p>
+        <h1 class="text-2xl font-bold text-gray-700">Sin pedidos</h1>
+        <p class="mt-2 text-gray-500">Parece que no hay pedidos pendientes.</p>
         <a
             href="http://localhost/paloma-proyecto/"
             class="block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -133,161 +133,29 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
 
 </main>
 <script>
-
-    // Recupera el valor de nombreC desde sessionStorage
+    // Recupera el valor de 'nombre' desde sessionStorage
     let nombreCRecuperado = sessionStorage.getItem('nombre');
 
-    // Filtra los elementos de la lista de pedidos
+    // Selecciona todos los elementos con la clase 'pedido-item'
     let pedidos = document.querySelectorAll('.pedido-item');
 
-    pedidos.forEach(function(pedido) {
-        // Verifica si el nombre del pedido coincide con el valor de sessionStorage
-        if (pedido.getAttribute('data-nombre') !== nombreCRecuperado) {
-            // Si no coincide, oculta el elemento
-            pedido.style.display = 'none';
-        }
+    // Recorre los pedidos y muestra solo los que coincidan con el nombre recuperado
+    pedidos.forEach(function (pedido) {
+        pedido.style.display =
+            pedido.getAttribute('data-nombre') === nombreCRecuperado ? '' : 'none';
     });
 
+    // Verifica si hay algún pedido visible
+    let hayPedidosVisibles = Array.from(pedidos).some(
+        pedido => pedido.style.display !== 'none'
+    );
 
-
-
-
-
-    let pagado = false
-
-    const carritoIzquierdo = document.getElementById('carritoIzquierdo')
-    const carritoDerecho = document.getElementById('carritoDerecho')
-    let ordenActiva = sessionStorage.getItem('ordenActiva') === 'true';
-
-
-
-
-    const amountItemsElements = document.querySelectorAll('.amount-items');
-    const totalHElements = document.querySelectorAll('.total-h');
-
-    let carrito = JSON.parse(sessionStorage.getItem('carrito')) || [];
-
-    function guardarCarritoEnStorage() {
-        sessionStorage.setItem('carrito', JSON.stringify(carrito));
-    }
-
-
-    // Declaración global de totalAmountCart
-    let totalAmountCart = 0;
-
-    function renderizarCarrito() {
-        totalAmountCart = 0; // Reiniciar al renderizar el carrito
-
-        const listaCarrito = document.querySelector('#carrito-lista');
-        const listaCarritoPagoElements = document.querySelectorAll('.carrito-lista-pago');
-        listaCarrito.innerHTML = ''; // Limpiar la lista antes de renderizar
-        listaCarritoPagoElements.forEach(lista => lista.innerHTML = ''); // Limpiar todas las listas de pago
-
-        // Agrupar productos por id y calcular cantidades
-        const productosAgrupados = carrito.reduce((acc, producto) => {
-            if (!acc[producto.id]) {
-                acc[producto.id] = { ...producto, cantidad: 0 };
-            }
-            acc[producto.id].cantidad += 1;
-            return acc;
-        }, {});
-
-        // Renderizar productos agrupados
-        Object.values(productosAgrupados).forEach(producto => {
-            const itemCarrito = document.createElement('li');
-            const itemCarritoPago = document.createElement('li');
-            let totalAmount = producto.cantidad * producto.precio;
-
-            // Acumulamos el total de cada producto en totalAmountCart
-            totalAmountCart += totalAmount;
-
-            // Configuración del elemento para listaCarrito
-            itemCarrito.classList.add('flex', 'shadow-md', 'mb-6');
-            itemCarrito.innerHTML = `
-        <div class="w-1/3 shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4">
-            <img src="public/${producto.imagen}" alt="${producto.descripcion}" class="w-full object-cover">
-        </div>
-        <div class="flex flex-col justify-around ml-3 w-1/2">
-            <p class="font-bold text-2xl">${producto.descripcion}</p>
-            <div class="flex justify-between">
-                <span>$${totalAmount}</span>
-                <div class="flex gap-6">
-                    <button class="btn-disminuir" data-id="${producto.id}">-</button>
-                    <span>${producto.cantidad}</span>
-                    <button class="btn-aumentar" data-id="${producto.id}">+</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-            // Configuración del elemento para listaCarritoPago
-            itemCarritoPago.innerHTML = `
-        <div class="flex justify-between items-center">
-            <span>${producto.descripcion} (x${producto.cantidad})</span>
-        </div>
-    `;
-            itemCarritoPago.classList.add('flex', 'justify-between', 'py-2');
-
-            // Agregar a las respectivas listas
-            listaCarrito.appendChild(itemCarrito);
-            listaCarritoPagoElements.forEach(lista => lista.appendChild(itemCarritoPago.cloneNode(true))); // Agregar a todas las listas de pago
-        });
-
-        // Actualizar totales y número de elementos
-        document.querySelector('.amountItems').textContent = carrito.length; // Actualizar cantidad de productos
-        document.querySelectorAll('.total-h').forEach(el => el.textContent = totalAmountCart.toFixed(2)); // Actualizar el total en todas las clases `total-h`
-
-        // Añadir eventos a los botones
-        const botonesAumentar = document.querySelectorAll('.btn-aumentar');
-        const botonesDisminuir = document.querySelectorAll('.btn-disminuir');
-
-        botonesAumentar.forEach(boton => {
-            boton.addEventListener('click', () => {
-                const id = boton.getAttribute('data-id');
-                aumentarCantidad(id);
-            });
-        });
-
-        botonesDisminuir.forEach(boton => {
-            boton.addEventListener('click', () => {
-                const id = boton.getAttribute('data-id');
-                disminuirCantidad(id);
-                checarCarro()
-            });
-        });
-    }
-
-
-
-
-
-
-
-
-
-    const carroLleno = document.getElementById('carroLleno')
-    const carroVacio = document.getElementById('carroVacío')
-
-    function checarCarro() {
-        // Obtener el carrito del sessionStorage y convertirlo en array
-        const carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
-
-        // Verificar si el carrito tiene elementos
-        if (carrito.length > 0 || ordenActiva === true) {
-            carroLleno.classList.remove('hidden');
-            carroVacio.classList.add('hidden');
-        } else {
-            carroLleno.classList.add('hidden');
-            carroVacio.classList.remove('hidden');
-        }
-    }
-
-    // Llamar a la función al cargar
-    checarCarro();
-
-
-
+    // Muestra u oculta las secciones según los pedidos visibles
+    document.getElementById('carroLleno').style.display = hayPedidosVisibles ? '' : 'none';
+    document.getElementById('carroVacío').style.display = hayPedidosVisibles ? 'none' : '';
 </script>
+
+
 
 </body>
 </html>

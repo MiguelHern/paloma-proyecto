@@ -120,25 +120,50 @@
             <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
                 <div class="bg-white rounded-lg shadow-md w-full max-w-lg p-6">
                     <h2 class="text-2xl font-bold mb-6">Finalizar compra</h2>
-
-                    <form>
+                    <div id="alert-message" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 hidden" role="alert">
+                        <p id="message"></p>
+                    </div>
+                    <form id="form-pago">
                         <div class="space-y-6">
+                            <div class="col-span-2">
+                                <label for="card-number" class="block text-sm font-medium text-gray-700 mb-1">Número de tarjeta</label>
+                                <input
+                                        type="text"
+                                        id="card-number"
+                                        name="card-number"
+                                        placeholder="1234 5678 9012 3456"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        required
+                                        pattern="^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})$"
+                                        title="Introduce un número de tarjeta válido (Visa, Mastercard, American Express, Discover).">
+                            </div>
+
+                            <!-- Validación para la fecha de expiración -->
                             <div>
-                                <h3 class="text-lg font-semibold mb-4">Información de pago</h3>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="col-span-2">
-                                        <label for="card-number" class="block text-sm font-medium text-gray-700 mb-1">Número de tarjeta</label>
-                                        <input type="text" id="card-number" name="card-number" placeholder="1234 5678 9012 3456" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                    <div>
-                                        <label for="expiry" class="block text-sm font-medium text-gray-700 mb-1">Fecha de expiración</label>
-                                        <input type="text" id="expiry" name="expiry" placeholder="MM/AA" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                    <div>
-                                        <label for="cvc" class="block text-sm font-medium text-gray-700 mb-1">CVC</label>
-                                        <input type="text" id="cvc" name="cvc" placeholder="123" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                </div>
+                                <label for="expiry" class="block text-sm font-medium text-gray-700 mb-1">Fecha de expiración</label>
+                                <input
+                                        type="text"
+                                        id="expiry"
+                                        name="expiry"
+                                        placeholder="MM/AA"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        required
+                                        pattern="^(0[1-9]|1[0-2])\/\d{2}$"
+                                        title="Introduce una fecha de expiración válida en formato MM/AA.">
+                            </div>
+
+                            <!-- Validación para el CVC -->
+                            <div>
+                                <label for="cvc" class="block text-sm font-medium text-gray-700 mb-1">CVC</label>
+                                <input
+                                        type="text"
+                                        id="cvc"
+                                        name="cvc"
+                                        placeholder="123"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        required
+                                        pattern="^\d{3,4}$"
+                                        title="El código de seguridad debe tener 3 o 4 dígitos.">
                             </div>
 
                             <div class="p-6">
@@ -188,9 +213,29 @@
                             Cancelar
                         </button>
                     </div>
-                    <!-- Mensajes -->
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+<div id="popUpPago" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+    <!-- Pop-up -->
+    <div class="bg-white rounded-lg shadow-xl p-6 w-80 max-w-md mx-auto">
+        <div class="text-center">
+            <!-- Icono de check (puedes reemplazarlo con una imagen si lo prefieres) -->
+            <svg class="mx-auto h-12 w-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+
+            <h2 class="mt-4 text-xl font-bold text-gray-900">Pago Aceptado</h2>
+            <p class="mt-2 text-sm text-gray-500">Tu pago ha sido procesado con éxito.</p>
+        </div>
+
+        <!-- Botón para cerrar -->
+        <div class="mt-6">
+            <button onclick="closePopup()" class="w-full bg-green-500 text-white rounded-md px-4 py-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors duration-300">
+                Cerrar
+            </button>
         </div>
     </div>
 </div>
@@ -212,11 +257,13 @@
     cancelButton2.addEventListener('click', () => {
         modalCard.classList.add('hidden');
     });
+    function closePopup() {
+        const popUp = document.getElementById('popUpPago');
+        popUp.classList.add('hidden')
+        checarCarro()
+    }
 
     const cardPayment = document.getElementById('pago-tarjeta')
-
-
-
 
 
 
@@ -264,7 +311,7 @@
             itemCarrito.classList.add('flex', 'shadow-md', 'mb-6');
             itemCarrito.innerHTML = `
         <div class="w-1/3 shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4">
-            <img src="public/${producto.imagen}" alt="${producto.descripcion}" class="w-full object-cover">
+            <img src="public/imagenes/${producto.imagen}" alt="${producto.descripcion}" class="w-full object-cover" style="height: 200px">
         </div>
         <div class="flex flex-col justify-around ml-3 w-1/2">
             <p class="font-bold text-2xl">${producto.descripcion}</p>
@@ -343,59 +390,45 @@
 
     // Función para depurar el valor global
 
-    renderizarCarrito();
-    async function handleSubmit() {
-        const nombreC = document.getElementById('nombreC').value;
-        const errorMessage = document.getElementById('error-message');
-        const successMessage = document.getElementById('success-message');
 
-        // Validar campos
-        if (!nombreC) {
-            errorMessage.textContent = "El campo de nombre es obligatorio.";
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
+
+    renderizarCarrito();
+
+
+
+    const popUpPago = document.getElementById('popUpPago')
+    const message = document.getElementById('message')
+    const alertMessage = document.getElementById('alert-message')
+    async function handleSubmit2() {
+        // Validar campos de tarjeta
+        const cardNumber = document.getElementById("card-number").value;
+        const expiry = document.getElementById("expiry").value;
+        const cvc = document.getElementById("cvc").value;
+
+        // Patrón para validar los campos
+        const cardPattern = /^\d{16}$/;
+        const expiryPattern = /^(0[1-9]|1[0-2])\/\d{2}$/;
+        const cvcPattern = /^\d{3,4}$/;
+
+        if (!cardPattern.test(cardNumber)) {
+            alertMessage.classList.remove('hidden')
+            message.textContent = "Por favor, introduce un número de tarjeta válido.";
             return;
         }
 
-        // Guardar el nombre en sessionStorage
-
-        sessionStorage.clear()
-        renderizarCarrito();
-        sessionStorage.setItem('nombreC', nombreC);
-
-        // Construir los datos para enviar
-        const formData = new FormData();
-        formData.append('nombreC', nombreC);
-        formData.append('statusPa', 1);
-        formData.append('statusPe', 1);
-        formData.append('total', totalAmountCart);
-
-        try {
-            // Enviar datos con fetch
-            const response = await fetch('/paloma-proyecto/carrito', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                console.log('Pedido realizado con éxito');
-
-                // Limpiar formulario
-                document.getElementById('checkout-form').reset();
-            } else {
-                throw new Error(result.message || 'Error desconocido');
-            }
-        } catch (error) {
-            console.log(error)
+        if (!expiryPattern.test(expiry)) {
+            alertMessage.classList.remove('hidden')
+            message.textContent = "Por favor, introduce una fecha de expiración válida en formato MM/AA."
+            return;
         }
-    }
 
+        if (!cvcPattern.test(cvc)) {
+            alertMessage.classList.remove('hidden')
+            message.textContent = "Por favor, introduce un CVC válido (3 o 4 dígitos)."
+            return;
+        }
 
-
-
-    async function handleSubmit2() {
+        // Renderizar carrito
         renderizarCarrito();
 
         // Obtener los productos del sessionStorage
@@ -455,15 +488,21 @@
             const result = await response.json();
 
             if (result.success) {
-                console.log('Pedido realizado con éxito');
+                alertMessage.classList.add('hidden')
+                popUpPago.classList.add('flex');
+                popUpPago.classList.remove('hidden');
+                modalCard.classList.add('hidden');
                 document.getElementById('checkout-form').reset();
+                document.getElementById('form-pago').reset();
+                sessionStorage.removeItem('carrito');
             } else {
                 throw new Error(result.message || 'Error desconocido');
             }
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
     }
+
 
 
     const carroLleno = document.getElementById('carroLleno')
