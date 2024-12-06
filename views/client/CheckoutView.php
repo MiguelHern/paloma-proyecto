@@ -30,9 +30,9 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <defs> <style>.cls-1{fill:none;stroke:#020202;stroke-miterlimit:10;stroke-width:1.91px;}</style> </defs> <g id="handbag"> <path class="cls-1" d="M3.41,7.23H20.59a0,0,0,0,1,0,0v12a3.23,3.23,0,0,1-3.23,3.23H6.64a3.23,3.23,0,0,1-3.23-3.23v-12A0,0,0,0,1,3.41,7.23Z"></path> <path class="cls-1" d="M8.18,10.09V5.32A3.82,3.82,0,0,1,12,1.5h0a3.82,3.82,0,0,1,3.82,3.82v4.77"></path> </g> </g></svg>
             </a>
         </div>
-        <div class="hidden lg:flex ">
-            <a href="public/login.php" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
-        </div>
+        <button onclick="logOut()" class="hidden lg:flex ">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 20H6C4.89543 20 4 19.1046 4 18L4 6C4 4.89543 4.89543 4 6 4H14M10 12H21M21 12L18 15M21 12L18 9" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+        </button>
     </nav>
 
     <!-- Mobile menu, show/hide based on menu open state. -->
@@ -308,7 +308,7 @@
             totalAmountCart += totalAmount;
 
             // Configuración del elemento para listaCarrito
-            itemCarrito.classList.add('flex', 'shadow-md', 'mb-6');
+            itemCarrito.classList.add('flex', 'shadow-md', 'mb-6','border', 'rounded-md');
             itemCarrito.innerHTML = `
         <div class="w-1/3 shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4">
             <img src="public/imagenes/${producto.imagen}" alt="${producto.descripcion}" class="w-full object-cover" style="height: 200px">
@@ -526,7 +526,11 @@
     checarCarro();
 
 
+    function logOut() {
 
+        window.location.href = "public/login.php";
+        sessionStorage.clear()
+    }
 </script>
 
 </body>

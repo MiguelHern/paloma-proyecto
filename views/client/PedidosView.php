@@ -45,9 +45,9 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
                 <svg width="22" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <defs> <style>.cls-1{fill:none;stroke:#020202;stroke-miterlimit:10;stroke-width:1.91px;}</style> </defs> <g id="handbag"> <path class="cls-1" d="M3.41,7.23H20.59a0,0,0,0,1,0,0v12a3.23,3.23,0,0,1-3.23,3.23H6.64a3.23,3.23,0,0,1-3.23-3.23v-12A0,0,0,0,1,3.41,7.23Z"></path> <path class="cls-1" d="M8.18,10.09V5.32A3.82,3.82,0,0,1,12,1.5h0a3.82,3.82,0,0,1,3.82,3.82v4.77"></path> </g> </g></svg>
             </a>
         </div>
-        <div class="hidden lg:flex ">
-            <a href="../../public/login.php" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
-        </div>
+        <button onclick="logOut()" class="hidden lg:flex ">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 20H6C4.89543 20 4 19.1046 4 18L4 6C4 4.89543 4.89543 4 6 4H14M10 12H21M21 12L18 15M21 12L18 9" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+        </button>
     </nav>
 
     <!-- Mobile menu, show/hide based on menu open state. -->
@@ -88,9 +88,9 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
                 <h2 class="ml-4 text-2xl font-bold">Listos</h2>
             </header>
             <div class="relative overflow-hidden">
-                <ul id="pedidos-pagados">
+                <ul id="pedidos-pagados" class="grid grid-cols-4 gap-3">
                     <?php foreach ($pedidosPagados as $pedido): ?>
-                        <li class="p-4 rounded-md shadow-md pedido-item" data-nombre="<?php echo htmlspecialchars($pedido['nombreC']); ?>">
+                        <li class="p-4 col-span-1 border rounded-md shadow-lg pedido-item" data-nombre="<?php echo htmlspecialchars($pedido['nombreC']); ?>">
                             <p>Fecha: <?php echo date("d-m-Y", strtotime($pedido['fecha'])); ?></p>
                             <p>Hora: <?php echo $pedido['hora']; ?></p>
                             <p>Total: $<?php echo number_format($pedido['total'], 2); ?></p>
@@ -105,7 +105,7 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
                 <h2 class="ml-4 text-2xl font-bold">En Proceso</h2>
             </header>
             <div class="relative overflow-hidden">
-                <ul id="pedidos-en-proceso" class="grid grid-cols-4">
+                <ul id="pedidos-en-proceso" class="grid grid-cols-4 gap-3">
                     <?php foreach ($pedidosEnProceso as $pedido): ?>
                         <li class="p-4 col-span-1 border rounded-md shadow-lg pedido-item" data-nombre="<?php echo htmlspecialchars($pedido['nombreC']); ?>">
                             <div class="flex flex-start align-middle gap-3">
@@ -124,7 +124,7 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9.9898 22.55C9.9398 22.55 9.8898 22.55 9.8398 22.53C6.0098 21.75 2.8998 18.93 1.7398 15.19C1.6198 14.79 1.8398 14.37 2.2298 14.25C2.6298 14.13 3.0498 14.35 3.1698 14.74C4.1698 17.96 6.8398 20.38 10.1398 21.05C10.5498 21.13 10.8098 21.53 10.7198 21.94C10.6498 22.3 10.3298 22.55 9.9898 22.55Z" fill="#000000"></path><path d="M21.9502 11.73C21.5702 11.73 21.2402 11.44 21.2002 11.06C20.7202 6.32 16.7602 2.75 12.0002 2.75C7.23022 2.75 3.28022 6.32 2.80022 11.05C2.76022 11.46 2.40022 11.77 1.98022 11.72C1.57022 11.68 1.27022 11.31 1.31022 10.9C1.87022 5.4 6.47022 1.25 12.0002 1.25C17.5402 1.25 22.1402 5.4 22.6902 10.9C22.7302 11.31 22.4302 11.68 22.0202 11.72C22.0002 11.73 21.9702 11.73 21.9502 11.73Z" fill="#000000"></path><path d="M14.0101 22.55C13.6601 22.55 13.3501 22.31 13.2801 21.95C13.2001 21.54 13.4601 21.15 13.8601 21.07C17.1401 20.4 19.8101 18 20.8201 14.8C20.9401 14.4 21.3701 14.18 21.7601 14.31C22.1601 14.43 22.3701 14.86 22.2501 15.25C21.0701 18.97 17.9701 21.76 14.1601 22.54C14.1101 22.54 14.0601 22.55 14.0101 22.55Z" fill="#000000"></path></g></svg>
                                 <p>Status de Pedido:
                                     <?php echo match ($pedido['statusPe']) {
-                                        1 => 'Pendiente',
+                                        1 => 'Orden enviada',
                                         2 => 'Preparando',
                                         3 => 'Listo',
                                         default => 'Estado desconocido',
@@ -167,6 +167,12 @@ foreach ($pedidosAgrupados as $statusPa => $pedidosStatus) {
     // Muestra u oculta las secciones según los pedidos visibles
     document.getElementById('carroLleno').style.display = hayPedidosVisibles ? '' : 'none';
     document.getElementById('carroVacío').style.display = hayPedidosVisibles ? 'none' : '';
+
+    function logOut() {
+
+        window.location.href = "public/login.php";
+        sessionStorage.clear()
+    }
 </script>
 
 

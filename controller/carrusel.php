@@ -44,3 +44,36 @@ function obtenerPedidos()
 
     return $pedidos;
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_GET['action'])) {
+        $action = $_GET['action'];
+
+        if ($action === 'updateStatus') {
+            // Obtener datos del cuerpo de la solicitud
+            $data = json_decode(file_get_contents("php://input"), true);
+
+            if (isset($data['idP']) && isset($data['statusPe'])) {
+                $idP = intval($data['idP']);
+                $statusPe = intval($data['statusPe']);
+
+                try {
+                    // Actualizar el estado del pedido
+                    $sql = "UPDATE pedido SET statusPe = ? WHERE idP = ?";
+                    $stmt = $conexion->prepare($sql);
+                    $stmt->bind_param('ii', $statusPe, $idP);
+                    $stmt->execute();
+
+                    // Responder con éxito
+                    echo json_encode(['success' => true]);
+                } catch (Exception $e) {
+                    // Responder en caso de error
+                    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                }
+            } else {
+                // Respuesta si faltan datos
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+            }
+            exit;
+        }
+    }
+}
